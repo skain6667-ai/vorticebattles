@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  
+  html, body {
+    @apply bg-black text-white;
+    font-family: 'Barlow Condensed', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  :root {
+    --red: #FF0033;
+    --blue: #0066FF;
+    --silver: #C0C0C0;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Bebas Neue', cursive; }
+  .font-mono-vortice { font-family: 'Share Tech Mono', monospace; }
+
+  .text-glow-red {
+    text-shadow: 0 0 10px #FF0033, 0 0 20px #FF0033;
+  }
+  .text-glow-blue {
+    text-shadow: 0 0 10px #0066FF, 0 0 20px #0066FF;
+  }
+  .border-glow-red {
+    box-shadow: 0 0 10px rgba(255,0,51,0.4), inset 0 0 10px rgba(255,0,51,0.1);
+  }
+  .border-glow-blue {
+    box-shadow: 0 0 10px rgba(0,102,255,0.4), inset 0 0 10px rgba(0,102,255,0.1);
+  }
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+  .pb-safe {
+    padding-bottom: calc(4rem + var(--safe-bottom));
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Scrollbar global */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
