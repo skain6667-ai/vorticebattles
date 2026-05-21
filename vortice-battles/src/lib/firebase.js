@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 
 // REEMPLAZA CON TU CONFIGURACIÓN DE FIREBASE
 const firebaseConfig = {
@@ -21,11 +21,10 @@ export const googleProvider = new GoogleAuthProvider()
 // Admin email – reemplaza con tu correo real
 export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@vortice.com'
 
-// NUEVA: Función para iniciar sesión con Google Popup
+// Función para iniciar sesión con Google Popup
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    // Vincula automáticamente con la creación del perfil si es nuevo
     await createUserProfile(result.user);
     return result;
   } catch (error) {
@@ -72,5 +71,20 @@ export const getUserProfile = async (uid) => {
   } catch (error) {
     console.error('Error obteniendo el perfil de usuario:', error);
     return null;
+  }
+};
+
+// NUEVA: Función para suscribirse a los Reels en tiempo real
+export const subscribeToReels = (callback) => {
+  try {
+    const q = query(collection(db, 'reels'), orderBy('createdAt', 'desc'));
+    return onSnapshot(q, (snapshot) => {
+      const reels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(reels);
+    }, (error) => {
+      console.error("Error en tiempo real con Reels:", error);
+    });
+  } catch (error) {
+    console.error("Error al suscribirse a reels:", error);
   }
 };
