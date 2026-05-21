@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'
 
 // REEMPLAZA CON TU CONFIGURACIÓN DE FIREBASE
@@ -20,6 +20,19 @@ export const googleProvider = new GoogleAuthProvider()
 
 // Admin email – reemplaza con tu correo real
 export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@vortice.com'
+
+// NUEVA: Función para iniciar sesión con Google Popup
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    // Vincula automáticamente con la creación del perfil si es nuevo
+    await createUserProfile(result.user);
+    return result;
+  } catch (error) {
+    console.error("Error al iniciar sesión con Google:", error);
+    throw error;
+  }
+};
 
 // Función para crear o actualizar el perfil del usuario en Firestore
 export const createUserProfile = async (user, additionalData = {}) => {
@@ -49,7 +62,7 @@ export const createUserProfile = async (user, additionalData = {}) => {
   return userRef;
 };
 
-// NUEVA: Función para obtener el perfil del usuario de Firestore
+// Función para obtener el perfil del usuario de Firestore
 export const getUserProfile = async (uid) => {
   if (!uid) return null;
   try {
