@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc } from 'firebase/firestore'
 
 // REEMPLAZA CON TU CONFIGURACIÓN DE FIREBASE
 const firebaseConfig = {
@@ -89,10 +89,9 @@ export const subscribeToReels = (callback) => {
   }
 };
 
-// NUEVA: Función para suscribirse a la tabla de posiciones (Ranking) en tiempo real
+// Función para suscribirse a la tabla de posiciones (Ranking) en tiempo real
 export const subscribeToRanking = (callback) => {
   try {
-    // Ordena a los competidores por puntos de mayor a menor
     const q = query(collection(db, 'ranking'), orderBy('points', 'desc'));
     return onSnapshot(q, (snapshot) => {
       const ranking = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -102,5 +101,23 @@ export const subscribeToRanking = (callback) => {
     });
   } catch (error) {
     console.error("Error al suscribirse al ranking:", error);
+  }
+};
+
+// NUEVA: Función para procesar el canje de un beneficio
+export const canjearBeneficio = async (userId, beneficioId) => {
+  if (!userId || !beneficioId) return null;
+  try {
+    const logRef = collection(db, 'canjes');
+    const nuevoCanje = await addDoc(logRef, {
+      userId,
+      beneficioId,
+      status: 'pending',
+      createdAt: new Date()
+    });
+    return nuevoCanje.id;
+  } catch (error) {
+    console.error("Error al canjear el beneficio:", error);
+    throw error;
   }
 };
