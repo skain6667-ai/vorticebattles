@@ -48,3 +48,16 @@ export const createUserProfile = async (user, additionalData = {}) => {
 
   return userRef;
 };
+
+// NUEVA: Función para obtener el perfil del usuario de Firestore
+export const getUserProfile = async (uid) => {
+  if (!uid) return null;
+  try {
+    const docRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+  } catch (error) {
+    console.error('Error obteniendo el perfil de usuario:', error);
+    return null;
+  }
+};
