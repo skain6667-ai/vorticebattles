@@ -74,7 +74,7 @@ export const getUserProfile = async (uid) => {
   }
 };
 
-// NUEVA: Función para suscribirse a los Reels en tiempo real
+// Función para suscribirse a los Reels (Muro oficial) en tiempo real
 export const subscribeToReels = (callback) => {
   try {
     const q = query(collection(db, 'reels'), orderBy('createdAt', 'desc'));
@@ -86,5 +86,21 @@ export const subscribeToReels = (callback) => {
     });
   } catch (error) {
     console.error("Error al suscribirse a reels:", error);
+  }
+};
+
+// NUEVA: Función para suscribirse a la tabla de posiciones (Ranking) en tiempo real
+export const subscribeToRanking = (callback) => {
+  try {
+    // Ordena a los competidores por puntos de mayor a menor
+    const q = query(collection(db, 'ranking'), orderBy('points', 'desc'));
+    return onSnapshot(q, (snapshot) => {
+      const ranking = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(ranking);
+    }, (error) => {
+      console.error("Error en tiempo real con el Ranking:", error);
+    });
+  } catch (error) {
+    console.error("Error al suscribirse al ranking:", error);
   }
 };
