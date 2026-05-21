@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth'
-import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc } from 'firebase/firestore'
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc, getDocs, updateDoc, increment } from 'firebase/firestore'
 
 // REEMPLAZA CON TU CONFIGURACIÓN DE FIREBASE
 const firebaseConfig = {
@@ -33,7 +33,7 @@ export const signInWithGoogle = async () => {
   }
 };
 
-// NUEVA: Función para cerrar sesión
+// Función para cerrar sesión
 export const signOutUser = async () => {
   try {
     await signOut(auth);
@@ -84,20 +84,16 @@ export const getUserProfile = async (uid) => {
   }
 };
 
-// NUEVA: Función para actualizar el perfil del usuario (Auth y Firestore)
+// Función para actualizar el perfil del usuario (Auth y Firestore)
 export const updateUserProfile = async (updates) => {
   if (!auth.currentUser) throw new Error("No hay un usuario conectado");
   try {
-    // Actualiza en Firebase Authentication (nombre y foto)
     await updateProfile(auth.currentUser, updates);
-    
-    // Actualiza en la base de datos Firestore
     const userRef = doc(db, 'users', auth.currentUser.uid);
     await setDoc(userRef, {
       ...updates,
       updatedAt: new Date()
     }, { merge: true });
-    
     return true;
   } catch (error) {
     console.error("Error al actualizar el perfil:", error);
@@ -149,6 +145,34 @@ export const canjearBeneficio = async (userId, beneficioId) => {
     return nuevoCanje.id;
   } catch (error) {
     console.error("Error al canjear el beneficio:", error);
+    throw error;
+  }
+};
+
+// NUEVA: Función para traer todos los usuarios (Para el panel de Admin)
+export const getAllUsers = async () => {
+  try {
+    const usersColl = collection(db, 'users');
+    const snapshot = await getDocs(usersColl);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error obteniendo todos los usuarios:", error);
+    throw error;
+  }
+};
+
+// NUEVA: Función para asignar recursos o latas a los competidores
+export const asignarLata = async (userId, cantidad = 1) => {
+  if (!userId) return null;
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      latas: increment(cantidad),
+      lastUpdatedByAdmin: new Date()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error al asignar elemento al usuario:", error);
     throw error;
   }
 };
