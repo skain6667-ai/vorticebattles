@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth'
 import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc } from 'firebase/firestore'
 
 // REEMPLAZA CON TU CONFIGURACIÓN DE FIREBASE
@@ -29,6 +29,16 @@ export const signInWithGoogle = async () => {
     return result;
   } catch (error) {
     console.error("Error al iniciar sesión con Google:", error);
+    throw error;
+  }
+};
+
+// NUEVA: Función para cerrar sesión
+export const signOutUser = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error);
     throw error;
   }
 };
@@ -74,6 +84,27 @@ export const getUserProfile = async (uid) => {
   }
 };
 
+// NUEVA: Función para actualizar el perfil del usuario (Auth y Firestore)
+export const updateUserProfile = async (updates) => {
+  if (!auth.currentUser) throw new Error("No hay un usuario conectado");
+  try {
+    // Actualiza en Firebase Authentication (nombre y foto)
+    await updateProfile(auth.currentUser, updates);
+    
+    // Actualiza en la base de datos Firestore
+    const userRef = doc(db, 'users', auth.currentUser.uid);
+    await setDoc(userRef, {
+      ...updates,
+      updatedAt: new Date()
+    }, { merge: true });
+    
+    return true;
+  } catch (error) {
+    console.error("Error al actualizar el perfil:", error);
+    throw error;
+  }
+};
+
 // Función para suscribirse a los Reels (Muro oficial) en tiempo real
 export const subscribeToReels = (callback) => {
   try {
@@ -104,7 +135,7 @@ export const subscribeToRanking = (callback) => {
   }
 };
 
-// NUEVA: Función para procesar el canje de un beneficio
+// Función para procesar el canje de un beneficio
 export const canjearBeneficio = async (userId, beneficioId) => {
   if (!userId || !beneficioId) return null;
   try {
